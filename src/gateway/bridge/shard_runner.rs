@@ -3,9 +3,18 @@ use std::sync::Arc;
 
 use futures::channel::mpsc::{self, UnboundedReceiver as Receiver, UnboundedSender as Sender};
 use tokio::sync::RwLock;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite;
+#[cfg(feature = "3ds")]
+use tungstenite;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::error::Error as TungsteniteError;
+#[cfg(feature = "3ds")]
+pub use super::super::three_ds_tungstenite::TungsteniteError;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::protocol::frame::CloseFrame;
+#[cfg(feature = "3ds")]
+pub use super::super::three_ds_tungstenite::CloseFrame;
 use tracing::{debug, error, info, instrument, trace, warn};
 use typemap_rev::TypeMap;
 
@@ -240,7 +249,10 @@ impl ShardRunner {
                 .client
                 .close(Some(CloseFrame {
                     code: close_code.into(),
+                    #[cfg(not(feature = "3ds"))]
                     reason: Cow::from(""),
+                    #[cfg(feature = "3ds")]
+                    reason: "".into(),
                 }))
                 .await,
         );
@@ -306,7 +318,10 @@ impl ShardRunner {
                 let reason = reason.unwrap_or_default();
                 let close = CloseFrame {
                     code: code.into(),
+                    #[cfg(not(feature = "3ds"))]
                     reason: Cow::from(reason),
+                    #[cfg(feature = "3ds")]
+                    reason: reason.into(),
                 };
                 self.shard.client.close(Some(close)).await.is_ok()
             },

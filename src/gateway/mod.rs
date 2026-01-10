@@ -43,12 +43,21 @@ mod bridge;
 mod error;
 mod shard;
 mod ws;
+#[cfg(feature = "3ds")]
+pub mod three_ds_tungstenite;
 
 use std::fmt;
 
 #[cfg(feature = "http")]
+#[cfg(not(feature = "3ds"))]
 use reqwest::IntoUrl;
+#[cfg(feature = "http")]
+#[cfg(feature = "3ds")]
+use crate::all::three_ds_reqwest::IntoUrl;
+#[cfg(not(feature = "3ds"))]
 use reqwest::Url;
+#[cfg(feature = "3ds")]
+use crate::all::Url;
 
 pub use self::bridge::*;
 pub use self::error::Error as GatewayError;

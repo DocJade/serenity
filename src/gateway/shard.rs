@@ -2,10 +2,17 @@ use std::sync::Arc;
 use std::time::{Duration as StdDuration, Instant};
 
 use tokio::sync::Mutex;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::error::Error as TungsteniteError;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::TungsteniteError;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::protocol::frame::CloseFrame;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::CloseFrame;
 use tracing::{debug, error, info, instrument, trace, warn};
 use url::Url;
+
 
 use super::{
     ActivityData,

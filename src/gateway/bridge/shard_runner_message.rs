@@ -1,4 +1,7 @@
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::Message;
+#[cfg(feature = "3ds")]
+pub use super::super::three_ds_tungstenite::Message;
 
 use super::ShardId;
 use crate::gateway::{ActivityData, ChunkGuildFilter};

@@ -1,8 +1,16 @@
 use std::error::Error as StdError;
 use std::fmt;
 
+#[cfg(not(feature = "3ds"))]
 use reqwest::header::InvalidHeaderValue;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_reqwest::InvalidHeaderValue;
+#[cfg(not(feature = "3ds"))]
 use reqwest::{Error as ReqwestError, Method, Response, StatusCode};
+#[cfg(feature = "3ds")]
+pub use super::three_ds_reqwest::{Error as ReqwestError, Method, Response, StatusCode};
+
+
 use serde::de::{Deserialize, Deserializer, Error as _};
 use url::ParseError as UrlError;
 
@@ -132,6 +140,13 @@ impl From<UrlError> for HttpError {
 impl From<InvalidHeaderValue> for HttpError {
     fn from(error: InvalidHeaderValue) -> Self {
         Self::InvalidHeader(error)
+    }
+}
+
+#[cfg(feature = "3ds")]
+impl From<crate::http::three_ds_reqwest::Error> for Error {
+    fn from(err: crate::http::three_ds_reqwest::Error) -> Self {
+        Error::Http(crate::http::HttpError::Request(err))
     }
 }
 

@@ -23,7 +23,7 @@ use http::header::{
 #[cfg(not(feature = "3ds"))]
 use reqwest::{Client, RequestBuilder as ReqwestRequestBuilder, Url};
 #[cfg(feature = "3ds")]
-pub use super::three_ds_stubs::{Client, ReqwestRequestBuilder, Url};
+pub use super::three_ds_reqwest::{Client, RequestBuilder as ReqwestRequestBuilder, Url};
 
 
 use tracing::instrument;

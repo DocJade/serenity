@@ -6,22 +6,43 @@ use std::time::SystemTime;
 #[cfg(feature = "client")]
 use flate2::read::ZlibDecoder;
 use futures::SinkExt;
+#[cfg(not(feature = "3ds"))]
 #[cfg(feature = "client")]
 use futures::StreamExt;
+#[cfg(not(feature = "3ds"))]
 use tokio::net::TcpStream;
 #[cfg(feature = "client")]
 use tokio::time::{timeout, Duration};
 #[cfg(feature = "client")]
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::CloseFrame;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::WebSocketConfig;
 #[cfg(feature = "client")]
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::Error as WsError;
+#[cfg(feature = "client")]
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::TungsteniteError as WsError;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::Message;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::Message;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::{connect_async_with_config, MaybeTlsStream, WebSocketStream};
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::{connect_with_config, MaybeTlsStream, WebSocketStream};
 #[cfg(feature = "client")]
 use tracing::warn;
 use tracing::{debug, instrument, trace};
 use url::Url;
+
+#[cfg(feature = "3ds")]
+use futures::StreamExt;
 
 use super::{ActivityData, ChunkGuildFilter, PresenceData};
 use crate::constants::{self, Opcode};
@@ -96,7 +117,10 @@ struct WebSocketMessage<'a> {
     d: WebSocketMessageData<'a>,
 }
 
+#[cfg(not(feature = "3ds"))]
 pub struct WsClient(WebSocketStream<MaybeTlsStream<TcpStream>>);
+#[cfg(feature = "3ds")]
+pub struct WsClient(WebSocketStream<MaybeTlsStream<std::net::TcpStream>>);
 
 #[cfg(feature = "client")]
 const TIMEOUT: Duration = Duration::from_millis(500);
@@ -105,14 +129,26 @@ const DECOMPRESSION_MULTIPLIER: usize = 3;
 
 impl WsClient {
     pub(crate) async fn connect(url: Url) -> Result<Self> {
+        #[cfg(not(feature = "3ds"))]
         let config = WebSocketConfig {
             max_message_size: None,
             max_frame_size: None,
             ..Default::default()
         };
-        let (stream, _) = connect_async_with_config(url, Some(config), false).await?;
+        #[cfg(feature = "3ds")]
+        let mut config = WebSocketConfig::default();
+        config.max_message_size = None;
+        config.max_frame_size = None;
 
-        Ok(Self(stream))
+        #[cfg(not(feature = "3ds"))]
+        let (stream, _) = connect_async_with_config(url, Some(config), false).await?;
+        #[cfg(feature = "3ds")]
+        let (stream, _) = connect_with_config(url, Some(config), u8::MAX)?;
+        
+        #[cfg(not(feature = "3ds"))]
+        return Ok(Self(stream));
+        #[cfg(feature = "3ds")]
+        return Ok(Self(crate::all::three_ds_tungstenite::WebSocketStream(stream)));
     }
 
     #[cfg(feature = "client")]
@@ -142,7 +178,14 @@ impl WsClient {
                     why
                 })?
             },
+            #[cfg(not(feature = "3ds"))]
             Message::Text(payload) => from_str(&payload).map_err(|why| {
+                warn!("Err deserializing text: {why:?}; text: {payload}");
+                
+                why
+            })?,
+            #[cfg(feature = "3ds")]
+            Message::Text(payload) => from_str(&*payload).map_err(|why| {
                 warn!("Err deserializing text: {why:?}; text: {payload}");
 
                 why
@@ -157,9 +200,14 @@ impl WsClient {
     }
 
     pub(crate) async fn send_json(&mut self, value: &impl serde::Serialize) -> Result<()> {
+        #[cfg(not(feature = "3ds"))]
         let message = to_string(value).map(Message::Text)?;
-
+        #[cfg(feature = "3ds")]
+        let message = to_string(value).map(|s| Message::Text(s.into()))?;
+        #[cfg(not(feature = "3ds"))]
         self.0.send(message).await?;
+        #[cfg(feature = "3ds")]
+        self.0.send(message)?;
         Ok(())
     }
 
@@ -172,14 +220,20 @@ impl WsClient {
     /// Delegate to `SinkExt::send`
     #[cfg(feature = "client")]
     pub(crate) async fn send(&mut self, message: Message) -> Result<()> {
+        #[cfg(not(feature = "3ds"))]
         self.0.send(message).await?;
+        #[cfg(feature = "3ds")]
+        self.0.send(message)?;
         Ok(())
     }
 
     /// Delegate to `WebSocketStream::close`
     #[cfg(feature = "client")]
     pub(crate) async fn close(&mut self, msg: Option<CloseFrame<'_>>) -> Result<()> {
+        #[cfg(not(feature = "3ds"))]
         self.0.close(msg).await?;
+        #[cfg(feature = "3ds")]
+        self.0.close().await?;
         Ok(())
     }
 

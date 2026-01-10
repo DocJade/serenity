@@ -50,6 +50,17 @@ pub(crate) async fn decode_resp<T: serde::de::DeserializeOwned>(
     Ok(result)
 }
 
+#[cfg(feature = "3ds")]
+pub(crate) async fn decode_resp<T: serde::de::DeserializeOwned>(
+    resp: crate::all::three_ds_reqwest::Response,
+) -> Result<T> {
+    #[cfg(not(feature = "simd_json"))]
+    let result = serde_json::from_slice(&resp.bytes().await?)?;
+    #[cfg(feature = "simd_json")]
+    let result = simd_json::from_slice(&mut resp.bytes().await?.to_vec())?;
+    Ok(result)
+}
+
 /// Converts a HashMap into a final [`JsonMap`] representation.
 pub fn hashmap_to_json_map<H, T>(map: HashMap<T, Value, H>) -> JsonMap
 where

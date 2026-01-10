@@ -1,7 +1,10 @@
 use std::error::Error as StdError;
 use std::fmt;
 
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_tungstenite::CloseFrame;
 
 /// An error that occurred while attempting to deal with the gateway.
 ///

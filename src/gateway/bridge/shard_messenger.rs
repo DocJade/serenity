@@ -2,7 +2,10 @@
 use std::sync::Arc;
 
 use futures::channel::mpsc::UnboundedSender as Sender;
+#[cfg(not(feature = "3ds"))]
 use tokio_tungstenite::tungstenite::Message;
+#[cfg(feature = "3ds")]
+pub use super::super::three_ds_tungstenite::Message;
 
 #[cfg(feature = "collector")]
 use super::CollectorCallback;

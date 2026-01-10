@@ -3,7 +3,7 @@ use std::borrow::Cow;
 #[cfg(not(feature = "3ds"))]
 use reqwest::multipart::{Form, Part};
 #[cfg(feature = "3ds")]
-pub use super::three_ds_stubs::{Form, Part};
+pub use super::three_ds_reqwest::{Form, Part};
 
 use crate::builder::CreateAttachment;
 use crate::internal::prelude::*;

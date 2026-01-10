@@ -41,8 +41,15 @@ use std::str::{self, FromStr};
 use std::sync::Arc;
 use std::time::SystemTime;
 
+#[cfg(not(feature = "3ds"))]
 use reqwest::header::HeaderMap;
+#[cfg(feature = "3ds")]
+pub use super::three_ds_reqwest::HeaderMap;
+#[cfg(not(feature = "3ds"))]
 use reqwest::{Client, Response, StatusCode};
+#[cfg(feature = "3ds")]
+pub use super::three_ds_reqwest::{Client, Response, StatusCode};
+
 use secrecy::{ExposeSecret, SecretString};
 use tokio::sync::{Mutex, RwLock};
 use tokio::time::{sleep, Duration};

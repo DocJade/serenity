@@ -14,13 +14,21 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+
 #[cfg(not(feature = "3ds"))]
 use reqwest::header::{HeaderMap as Headers, HeaderValue};
+#[cfg(feature = "3ds")]
+pub use super::three_ds_reqwest::{HeaderMap as Headers, HeaderValue};
 #[cfg(feature = "utils")]
 #[cfg(not(feature = "3ds"))]
 use reqwest::Url;
+#[cfg(feature = "utils")]
+#[cfg(feature = "3ds")]
+pub use super::three_ds_reqwest::Url;
 #[cfg(not(feature = "3ds"))]
 use reqwest::{Client, ClientBuilder, Response as ReqwestResponse, StatusCode};
+#[cfg(feature = "3ds")]
+pub use super::three_ds_reqwest::{Client, ClientBuilder, Response as ReqwestResponse, StatusCode};
 use secrecy::{ExposeSecret, SecretString};
 use serde::de::DeserializeOwned;
 use tracing::{debug, instrument, warn};

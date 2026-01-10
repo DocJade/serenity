@@ -1,5 +1,9 @@
 #[cfg(feature = "model")]
+#[cfg(not(feature = "3ds"))]
 use reqwest::Client as ReqwestClient;
+#[cfg(feature = "3ds")]
+pub use crate::all::three_ds_reqwest::Client as ReqwestClient;
+
 use serde_cow::CowStr;
 
 #[cfg(feature = "model")]

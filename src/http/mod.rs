@@ -31,11 +31,15 @@ use std::sync::Arc;
 
 #[cfg(not(feature = "3ds"))]
 use reqwest::Method;
+pub use crate::all::three_ds_reqwest::{Method};
+
 #[cfg(not(feature = "3ds"))]
 pub use reqwest::StatusCode;
+#[cfg(feature = "3ds")]
+pub use crate::all::three_ds_reqwest::{StatusCode};
 
 #[cfg(feature = "3ds")]
-pub mod three_ds_stubs;
+pub mod three_ds_reqwest;
 
 pub use self::client::*;
 pub use self::error::*;

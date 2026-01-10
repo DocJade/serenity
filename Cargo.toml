@@ -69,6 +69,8 @@ serenity-voice-model = { version = "0.2.1", path = "./voice-model", optional = t
 # 3ds dependencies
 portable-atomic = { version = "1.0", default-features = false, features = ["fallback"], optional = true }
 http = { version = "0.2", default-features = false, optional = true }
+http-body-util = { version = "0.1.3", default-features = false, optional = true }
+tungstenite = { version = "0.28.0", default-features = false, features = ["handshake", "url"], optional = true }
 
 
 [dev-dependencies.http_crate]
@@ -160,7 +162,7 @@ native_tls_backend = [
 ]
 
 # Make serenity portable enough to work on the 3ds.
-3ds = ["dep:portable-atomic", "dep:minreq", "dep:http"]
+3ds = ["dep:portable-atomic", "dep:minreq", "dep:http", "dep:http-body-util", "bytes", "dep:tungstenite"]
 
 
 [package.metadata.docs.rs]

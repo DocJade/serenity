@@ -5,8 +5,12 @@ use std::io::Error as IoError;
 #[cfg(feature = "http")]
 #[cfg(not(feature = "3ds"))]
 use reqwest::{header::InvalidHeaderValue, Error as ReqwestError};
+#[cfg(not(feature = "3ds"))]
 #[cfg(feature = "gateway")]
 use tokio_tungstenite::tungstenite::error::Error as TungsteniteError;
+#[cfg(feature = "3ds")]
+#[cfg(feature = "gateway")]
+pub use crate::all::three_ds_tungstenite::TungsteniteError;
 use tracing::instrument;
 
 #[cfg(feature = "client")]
