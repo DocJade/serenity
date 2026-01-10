@@ -1,6 +1,7 @@
 #[cfg(all(
     any(feature = "http", feature = "gateway"),
-    not(any(feature = "rustls_backend", feature = "native_tls_backend"))
+    not(any(feature = "rustls_backend", feature = "native_tls_backend")),
+    not(feature = "3ds") // let us build on the 3ds.
 ))]
 compile_error!(
     "You have the `http` or `gateway` feature enabled, either the `rustls_backend` or \

@@ -29,8 +29,13 @@ mod typing;
 
 use std::sync::Arc;
 
+#[cfg(not(feature = "3ds"))]
 use reqwest::Method;
+#[cfg(not(feature = "3ds"))]
 pub use reqwest::StatusCode;
+
+#[cfg(feature = "3ds")]
+pub mod three_ds_stubs;
 
 pub use self::client::*;
 pub use self::error::*;

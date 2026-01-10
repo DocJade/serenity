@@ -3,13 +3,23 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::num::NonZeroU64;
-use std::sync::atomic::{AtomicU64, Ordering};
+
+#[cfg(feature = "3ds")]
+use portable_atomic::AtomicU64;
+
+#[cfg(not(feature = "3ds"))]
+use std::sync::atomic::AtomicU64;
+
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+#[cfg(not(feature = "3ds"))]
 use reqwest::header::{HeaderMap as Headers, HeaderValue};
 #[cfg(feature = "utils")]
+#[cfg(not(feature = "3ds"))]
 use reqwest::Url;
+#[cfg(not(feature = "3ds"))]
 use reqwest::{Client, ClientBuilder, Response as ReqwestResponse, StatusCode};
 use secrecy::{ExposeSecret, SecretString};
 use serde::de::DeserializeOwned;

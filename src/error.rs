@@ -3,6 +3,7 @@ use std::fmt::{self, Error as FormatError};
 use std::io::Error as IoError;
 
 #[cfg(feature = "http")]
+#[cfg(not(feature = "3ds"))]
 use reqwest::{header::InvalidHeaderValue, Error as ReqwestError};
 #[cfg(feature = "gateway")]
 use tokio_tungstenite::tungstenite::error::Error as TungsteniteError;
@@ -134,6 +135,7 @@ impl From<HttpError> for Error {
 }
 
 #[cfg(feature = "http")]
+#[cfg(not(feature = "3ds"))]
 impl From<InvalidHeaderValue> for Error {
     fn from(e: InvalidHeaderValue) -> Error {
         HttpError::InvalidHeader(e).into()
@@ -141,6 +143,7 @@ impl From<InvalidHeaderValue> for Error {
 }
 
 #[cfg(feature = "http")]
+#[cfg(not(feature = "3ds"))]
 impl From<ReqwestError> for Error {
     fn from(e: ReqwestError) -> Error {
         HttpError::Request(e).into()

@@ -49,6 +49,7 @@ levenshtein = { version = "1.0.5", optional = true }
 chrono = { version = "0.4.31", default-features = false, features = ["clock", "serde"], optional = true }
 flate2 = { version = "1.0.28", optional = true }
 reqwest = { version = ">=0.11.22", default-features = false, features = ["multipart", "stream"], optional = true }
+minreq = { version = ">=2.14.1", default-features = false, optional = true }
 static_assertions = { version = "1.1.0", optional = true }
 tokio-tungstenite = { version = "0.21.0", optional = true }
 typemap_rev = { version = "0.3.0", optional = true }
@@ -64,6 +65,11 @@ typesize = { version = "0.1.2", optional = true, features = ["url", "time", "ser
 # Serenity workspace crates
 command_attr = { version = "0.5.4", path = "./command_attr", optional = true }
 serenity-voice-model = { version = "0.2.1", path = "./voice-model", optional = true }
+
+# 3ds dependencies
+portable-atomic = { version = "1.0", default-features = false, features = ["fallback"], optional = true }
+http = { version = "0.2", default-features = false, optional = true }
+
 
 [dev-dependencies.http_crate]
 version = ">=0.2.11"
@@ -152,6 +158,9 @@ native_tls_backend = [
     "tokio-tungstenite/native-tls",
     "bytes",
 ]
+
+# Make serenity portable enough to work on the 3ds.
+3ds = ["dep:portable-atomic", "dep:minreq", "dep:http"]
 
 
 [package.metadata.docs.rs]

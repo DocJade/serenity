@@ -39,6 +39,7 @@ mod export {
 pub use export::*;
 
 #[cfg(feature = "http")]
+#[cfg(not(feature = "3ds"))]
 pub(crate) async fn decode_resp<T: serde::de::DeserializeOwned>(
     resp: reqwest::Response,
 ) -> Result<T> {

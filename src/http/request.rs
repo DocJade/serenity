@@ -1,5 +1,6 @@
 use std::fmt::Write;
 
+#[cfg(not(feature = "3ds"))]
 use reqwest::header::{
     HeaderMap as Headers,
     HeaderValue,
@@ -8,7 +9,23 @@ use reqwest::header::{
     CONTENT_TYPE,
     USER_AGENT,
 };
+
+#[cfg(feature = "3ds")]
+use http::header::{
+    HeaderMap as Headers,
+    HeaderValue,
+    AUTHORIZATION,
+    CONTENT_LENGTH,
+    CONTENT_TYPE,
+    USER_AGENT,
+};
+
+#[cfg(not(feature = "3ds"))]
 use reqwest::{Client, RequestBuilder as ReqwestRequestBuilder, Url};
+#[cfg(feature = "3ds")]
+pub use super::three_ds_stubs::{Client, ReqwestRequestBuilder, Url};
+
+
 use tracing::instrument;
 
 use super::multipart::Multipart;
