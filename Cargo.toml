@@ -162,7 +162,18 @@ native_tls_backend = [
 ]
 
 # Make serenity portable enough to work on the 3ds.
-3ds = ["dep:portable-atomic", "dep:minreq", "minreq/https-rustls", "dep:http", "dep:http-body-util", "bytes", "dep:tungstenite"]
+3ds = [
+    "dep:portable-atomic",
+    "dep:minreq",
+    "minreq/https-rustls",
+    "dep:http",
+    "dep:http-body-util",
+    "bytes",
+    "dep:tungstenite",
+    "tungstenite/rustls",
+    "tungstenite/rustls-tls-webpki-roots",
+    "tungstenite/rustls-native-certs",
+    ]
 
 
 [package.metadata.docs.rs]

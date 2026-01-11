@@ -11,6 +11,7 @@ use minreq;
 
 pub use http::header::HeaderName as HeaderName;
 pub use http::header::HeaderValue as HeaderValue;
+use tracing::info;
 pub use url::Url as Url;
 pub use http::HeaderMap as HeaderMap;
 pub use http::Method as Method;
@@ -128,7 +129,7 @@ impl Client {
         let url_copy = request.url.clone(); // Capture URL for printing
         let url_string = request.url.to_string(); // Capture URL for printing
         async move {
-            println!("HTTP: {} {}", request.method, url_string); // TODO: DEBUGGING
+            println!("execute: {} {}", request.method, url_string); // TODO: DEBUGGING
             
             // We use spawn_blocking because minreq is a blocking library.
             // On the 3DS, running this directly in the async executor often starves the 
@@ -136,50 +137,39 @@ impl Client {
             let res = tokio::task::spawn_blocking(move || {
                 let mut min_req = minreq::Request::new(convert_http_method(request.method.clone()), request.url.as_str());
                 // timeouts!
-                min_req = min_req.with_timeout(config.timeout.unwrap_or(120));
+                // TODO: Timeouts spawn a thread which breaks everything, so no timeouts!
+                // min_req = min_req.with_timeout(config.timeout.unwrap_or(120));
                 
+                // info!("Adding headers...");
                 for (name, value) in &request.headers {
+                    // info!("{} : {}", name.as_str(), value.to_str().unwrap_or("FAILED TO PARSE TO STRING!"));
                     min_req = min_req.with_header(name.as_str(), value.to_str().unwrap_or(""));
                 }
 
                 if let Some(body) = request.body {
-                    // You'll need to store the bytes in your Body struct
-                    min_req = min_req.with_body(body.bytes);
+                    min_req = min_req.with_body(body.bytes.clone());
+                    println!("{}", String::from_utf8(body.bytes).expect("Should be valid UTF-8!"));
+                } else {
+                    // no body in the request?
+                    // TODO: is this bad?
+                    tracing::error!("No body in outgoing message!")
                 }
+
                 println!("Sending request...");
-                // keep track if we're stuck.
-                let mut attempts: u16 = 0;
-                // spawn with blocking to make sure we run on another thread.
-                loop {
-                    match min_req.clone().send() {
-                        Ok(res) => break Ok(res),
-                        Err(minreq::Error::IoError(ref e)) => {
-                            // yeild to let the network stack do its biz
-                            attempts += 1;
-                            
-                            // sleep a bit to hopefully un-block
-                            std::thread::sleep(std::time::Duration::from_millis(10));
-                            
-                            if attempts % 50 == 0 {
-                                println!("minreq waiting...");
-                                println!("{e:#?}")
-                            }
-                            if attempts > 1000 {
-                                return Err(crate::Error::Other("Blocked forever."));
-                            }
-                            continue;
-                        }
-                        Err(e) => {
-                            println!("Uncaught minreq error: {:?}", e);
-                            return Err(crate::Error::Other("minreq failed"));
-                        }
+
+                match min_req.clone().send() {
+                    Ok(ok) => Ok(ok),
+                    Err(err) =>{
+                        println!("minreq failed. {err:#?}");
+                        return Err(crate::Error::Other("minreq failed"));
                     }
                 }
             }).await;
 
             match res {
                 Ok(Ok(min_res)) => {
-                    println!("Response: {}", min_res.status_code);
+                    println!("Response code: {}", min_res.status_code);
+                    println!("Response body: {:#?}", min_res.as_str());
                     Ok(http_response_from_minreq_response(min_res, url_copy))
                 }
                 Ok(Err(e)) => Err(e),
@@ -232,7 +222,8 @@ struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self { 
-            user_agent: Some(HeaderValue::from_static("3DSCord (3DS; Nintendo 3DS)")),
+            // user_agent: Some(HeaderValue::from_static("3DSCord (3DS; Nintendo 3DS)")),
+            user_agent: Some(HeaderValue::from_static("DiscordBot (https://github.com/serenity-rs/serenity)")),
             timeout: Some(30),
             proxy: None,
         }
@@ -353,7 +344,9 @@ impl Body {
 
 impl From<Vec<u8>> for Body {
     fn from(value: Vec<u8>) -> Self {
-        unimplemented!("3DS STUB: BODY FROM BYTES")
+        Self {
+            bytes: value
+        }
     }
 }
 
